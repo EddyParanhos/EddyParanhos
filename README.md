@@ -10,7 +10,7 @@
 
 ###
 
-<p align="left">✨ Iniciei minha Jornada no mundo da Tecnologia em 2011 na TOTVS.<br>📚 Formado em Análise e Desenvolvimento de Sistemas.<br>🎯 Especialização ERP Fiscal e Contábil</p>
+<p align="left">✨ Iniciei minha Jornada no mundo da Tecnologia em 2011 na TOTVS.<br>📚 Formado em Análise e Desenvolvimento de Sistemas.<br>🎯 Especialista no ERP Protheus, com foco nos módulos Fiscal, Contábil e NF-e</p>
 
 ###
 
