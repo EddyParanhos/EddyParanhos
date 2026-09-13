@@ -78,7 +78,7 @@ Agentes e RAG sobre base Protheus/Fiscal, automação de diagnóstico e document
 <h2 align="left">Projetos em destaque</h2>
 
 - 📦 **[Projetos](https://github.com/EddyParanhos/Projetos)** — trabalhos e provas de conceito.
-- 🧩 **Fontes ADVPL neste perfil** — `ExtT154Fat.prw`, `RelCfgTrb.prw`, `MATUCOMP.prw`, `ImportFCI.prw`.
+- 🧩 **Fontes ADVPL em [`fontes/`](fontes/)** — [`ExtT154Fat.prw`](fontes/ExtT154Fat.prw), [`RelCfgTrb.prw`](fontes/RelCfgTrb.prw), [`MATUCOMP.prw`](fontes/MATUCOMP.prw), [`ImportFCI.prw`](fontes/ImportFCI.prw).
 
 ---
 
