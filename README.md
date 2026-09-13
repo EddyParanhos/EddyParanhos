@@ -1,7 +1,7 @@
 <h1 align="left">Olá, eu sou Edmar Paranhos 👋</h1>
 
 <p align="left">
-  <b>Dev completo | Protheus • ADVPL • SQL • Fiscal • IA aplicada ao ERP</b><br>
+  <b>Dev | Protheus • ADVPL • SQL • Fiscal • IA aplicada ao ERP</b><br>
   Ex-TOTVS desde 2011 • Análise e Desenvolvimento de Sistemas • ErpWorks • São Paulo/SP
 </p>
 
@@ -52,7 +52,7 @@
 ### 🧾 Reforma Tributária — IBS/CBS
 Configurador de Tributos (CFGTRIB), NT 2025.002, apuração e conciliação IBS/CBS, SPED Fiscal, tratamento de rejeições de NF-e.
 
-### 💻 ADVPL avançado
+### 💻 ADVPL
 MVC, Pontos de Entrada (MATA103, FINA, CTBA), WSRESTFUL com `FWRest`, `FWTemporaryTable`, checklist SonarQube / EngPro.
 
 ### 🗄️ SQL Server
