@@ -66,6 +66,40 @@ Agentes e RAG sobre base Protheus/Fiscal, automação de diagnóstico e document
 
 ---
 
+<h2 align="left">TARS — AI Agent</h2>
+
+<p>
+O <b>TARS</b> é meu Agent de Engenharia de Software para Protheus, ADVPL/TLPP,
+Fiscal, Contábil, SQL Server e Reforma Tributária. Ele combina modelo de IA,
+Vault curado, busca CAG/RAG, skills de engenharia, MCPs operacionais,
+governança de autonomia e verificação automatizada.
+</p>
+
+<h3>Arquitetura principal</h3>
+
+<ul>
+  <li><b>Vault-first:</b> identidade, regras, referências e conhecimento técnico versionados.</li>
+  <li><b>CAG/RAG FTS5:</b> recuperação determinística com índice primário TARS e fallback Lazarus.</li>
+  <li><b>Agent Runtime:</b> perfis <code>TARS_PLAN</code>, <code>TARS_ENGINEER</code>, <code>TARS_REVIEW</code> e <code>TARS_OPS</code>.</li>
+  <li><b>Gates:</b> Evidence Gate, Mutation Gate e Completion Gate.</li>
+  <li><b>Skills:</b> TDD, debugging sistemático, planos, code review e verificação antes da conclusão.</li>
+  <li><b>MCPs:</b> TARS-Seg, Protheus Dev-Ops e GitHub.</li>
+  <li><b>Qualidade:</b> healthcheck, 36 testes automatizados, SDE-Lite e benchmark de regressão.</li>
+  <li><b>Segurança:</b> credenciais fora do código e do contexto do modelo, com TARS-Seg AES-256-GCM.</li>
+</ul>
+
+<p>
+Fluxo resumido: <b>solicitação → contexto → evidências → perfil/autonomia → execução →
+verificação → resposta rastreável</b>.
+</p>
+
+<p>
+🔒 Repositório privado do TARS:
+<a href="https://github.com/EddyParanhos/TARS">github.com/EddyParanhos/TARS</a>
+</p>
+
+---
+
 <h2 align="left">GitHub Analytics</h2>
 
 <div align="left">
@@ -78,6 +112,7 @@ Agentes e RAG sobre base Protheus/Fiscal, automação de diagnóstico e document
 <h2 align="left">Projetos em destaque</h2>
 
 - 📦 **[Projetos](https://github.com/EddyParanhos/Projetos)** — trabalhos e provas de conceito.
+- 🧠 **[TARS — AI Agent](https://github.com/EddyParanhos/TARS)** — runtime, conhecimento e automação segura.
 - 🧩 **Fontes ADVPL em [`fontes/`](fontes/)** — [`ExtT154Fat.prw`](fontes/ExtT154Fat.prw), [`RelCfgTrb.prw`](fontes/RelCfgTrb.prw), [`MATUCOMP.prw`](fontes/MATUCOMP.prw), [`ImportFCI.prw`](fontes/ImportFCI.prw).
 
 ---
