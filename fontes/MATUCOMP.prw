@@ -2,128 +2,159 @@
 #include 'parmtype.ch'
 #INCLUDE "RWMAKE.CH"
 
+
 /*---------------------------------------------------------------------*
 | Func:  MATUCOMP()                                                   |
 | Autor: Edmar Paranhos                                               |
-| Data:  05/08/2019                                                   |
-| Desc:  Alimenta tabelas de complementos.                            |
-| Obs.: *MV_ATUCOMP = T         									   |
+| Data:  18/10/2018                                                   |
+| Desc:  Alimenta tabelas de complementos (SFX).                      |
+| Obs.: *MV_ATUCOMP = T         				                      |
 *---------------------------------------------------------------------*/
 
 
 User Function MATUCOMP()
 
-	Local Area := GetArea()
-	Local AreaCD5 := CD5-> (GetArea())
-	Local AreaSD1 := SD1-> (GetArea())
-	Local cTipo   := ""
-	Local cGrupo  := ""
-	Local cNumDi  := ""
-	Local oDlg
-	Local oFont
-	Local oFont1, oFont2
-	Local oFolder
-	Private lContinua:= .T.
+	Local cCodIt := "" //Codigo de produto de exemplo - ajustar conforme necessidade
+	Local cDataM := ""
+	Local cDataA := ""
+	Local cData1 := ""
 	
+
 	cEntSai := ParamIXB[1]
 	cSerie  := ParamIXB[2]
 	cDoc    := ParamIXB[3]
 	cCliefor:= ParamIXB[4]
 	cLoja   := ParamIXB[5]
 
-	IIf(inclui,'',POSICIONE("SA2",1,XFILIAL("SA2") + SA2->A2_COD,"A2_TIPO"))
-	cTipo := SA2->A2_TIPO
 
-	If cTipo == "X"						
+	IIf(inclui,'',POSICIONE("SD2",3,XFILIAL("SD2") + cDoc,"D2_COD"))
+	cCodIt := Alltrim(SD2->D2_COD)
 
-		CD5->(DbSetOrder(4))//CD5_FILIAL, CD5_DOC, CD5_SERIE, CD5_FORNEC, CD5_LOJA, CD5_ITEM, R_E_C_N_O_, D_E_L_E_T_
+	If cEntSai == "S" .And. Alltrim(cCodIt) == "COD_EXEMPLO"
 
-		If cEntSai == "E"
-		
-		//Tela para obter o numero da D.I / Valor da AFRMM e Imposto de Importação
-		
-	Define MSDialog oDlg Title "Gera Complementos NF-e" From 0,0 To 300,700 Pixel
+		dbselectarea("SC6")
+		dbsetorder(4) //C6_FILIAL, C6_NOTA, C6_SERIE
+		dbseek(xFilial("SC6")+cDoc+cSerie)
 
-	@05,010 Say "Nota Fiscal:" Pixel Of oDlg
-	@05,030 Say nNumNf    Pixel Of oDlg
-	@05,050 Say "-"   Pixel Of oDlg
-	@05,080 Say "Serie:"  Pixel Of oDlg
-	@05,110 Say nSerNf    Pixel Of oDlg
+		If SC6->(DbSeek(xFilial("SC6")+cDoc+cSerie))
+			While !SC6-> (Eof()) .and. SC6->C6_NOTA == cDoc .and. SC6->C6_SERIE == cSerie
 
-	//Dados da Fazenda.
-	@030,010 Say "Numero D.I:" Pixel Of oDlg
-	@029,050 MSGet cNumDi PICTURE "@!" Size 69,09 Of oDlg Pixel
+				RecLock("SFX",.T.)
 
-	@070,140  BUTTON "Grava Numero D.I."  SIZE 55 ,15   	FONT oDlg:oFont  OF oDlg PIXEL Action (lContinua := .T.,ODlg:End()) Message "Clique aqui para Confirmar" Of oDlg
+				SFX->FX_FILIAL	:= xFilial("SFX")
+				SFX->FX_TIPOMOV	:= "S"
+				SFX->FX_DOC	    := cDoc
+				SFX->FX_SERIE	:= cSerie
+				SFX->FX_ESPECIE	:= "NTST"
+				SFX->FX_CLIFOR	:= cClieFor
+				SFX->FX_LOJA	:= cLoja
+				SFX->FX_ITEM    := SD2->D2_ITEM
+				SFX->FX_COD	    := SD2->D2_COD
+				SFX->FX_TPCLASS	:= "00"			
+				SFX->FX_CLASCON	:= "99"
+				SFX->FX_CLASSIF	:= "99"			
+				SFX->FX_VALTERC	:= SD2->D2_TOTAL
+				SFX->FX_TIPOREC	:= "0"
+				SFX->FX_RECEP	:= cClieFor			
+				SFX->FX_LOJAREC	:= cLoja
+				SFX->FX_TIPSERV	:= "0"
+				SFX->FX_DTINI	:= SD2->D2_EMISSAO
+				SFX->FX_DTFIM	:= SD2->D2_EMISSAO
+                
+                //09/04/2019 - Ajuste no campo Data da SFX para não ocorrer erro na validação do .txt
+                
+				cDataM := Month2Str(SD2->D2_EMISSAO) //Mês
+				
+				cDataA := Year2Str(SD2->D2_EMISSAO) // Ano
+							
+				cData1 := cDataM+cDataA //MMAAAA
+				
+				SFX->FX_PERFIS	:= cData1  
 
-	Activate MSDialog oDlg Centered /*On Init EnchoiceBar(oDlg, {||u_OK(),oDlg:End()}, {||oDlg:End()},,aButtons)*/ Valid MsgYesNo("Confirma Numero D.I?")
-	
-//Return
-		
-			dbselectarea("SD1")
-			dbsetorder(1)
-			dbseek(xFilial("SD1")+cDoc+cSerie+cClieFor+cLoja)
-
-			If SD1-> (DbSeek(xFilial("SD1") +SF1->F1_DOC+SF1->F1_SERIE+SF1->F1_FORNECE+SF1->F1_LOJA))
-				While !SD1->(Eof()) .and. SD1->D1_DOC == SF1->F1_DOC .and. SD1->D1_SERIE == SF1->F1_SERIE;
-				.and. SD1->D1_FORNECE == SF1->F1_FORNECE .and. SD1->D1_LOJA == SF1->F1_LOJA
-
-					lExiste 	:= CD5->(dbSeek(xFilial("CD5")+cEntSai+cSerie+cDoc+cClieFor+cLoja))
-
-					If lExiste
-						RecLock("CD5",.F.)
-
-					Else 
-						RecLock("CD5",.T.)
-
-						dbSelectArea("CD5")
-						//Gera Complemento para todos os itens da NF	
-						CD5->(dbSetOrder(1))
-						CD5->CD5_FILIAL	:= xFilial("CD5")
-						CD5->CD5_ITEM	:= SD1->D1_ITEM
-						CD5->CD5_DOC	:= cDoc
-						CD5->CD5_SERIE	:= cSerie
-						CD5->CD5_FORNEC	:= cClieFor
-						CD5->CD5_LOJA	:= cLoja
-						CD5->CD5_TPIMP  := "0"
-						CD5->CD5_DOCIMP	:= cNumDi
-						CD5->CD5_NDI	:= cNumDi
-						CD5->CD5_BSPIS	:= SD1->D1_BASIMP6
-						CD5->CD5_ALPIS	:= SD1->D1_ALQIMP6
-						CD5->CD5_VLPIS	:= SD1->D1_VALIMP6
-						CD5->CD5_BSCOF	:= SD1->D1_BASIMP5
-						CD5->CD5_ALCOF	:= SD1->D1_ALQIMP5
-						CD5->CD5_VLCOF	:= SD1->D1_VALIMP5
-						CD5->CD5_LOCDES	:= "SAO PAULO"
-						CD5->CD5_UFDES	:= "SP"
-						CD5->CD5_DTDI	:= SD1->D1_EMISSAO
-						CD5->CD5_DTDES	:= SD1->D1_EMISSAO
-						CD5->CD5_LOCAL	:= "0"
-						CD5->CD5_NADIC	:= Substr(SD1->D1_ITEM,2,3)
-						CD5->CD5_SQADIC	:= Substr(SD1->D1_ITEM,2,3)
-						CD5->CD5_CODFAB	:= cCliefor
-						CD5->CD5_LOJFAB := cLoja			
-						CD5->CD5_VLRII	:= SD1->D1_II
-						CD5->CD5_CODEXP	:= cCliefor
-						CD5->CD5_LOJEXP := cLoja  
-						CD5->CD5_VTRANS	:= "1"
-						CD5->CD5_VAFRMM	:= 0
-						CD5->CD5_INTERM	:= "1"
+				SFX->FX_AREATER	:= "11"
+				SFX->FX_TERMINA	:= "00000000" // Exemplo - ajustar conforme necessidade
+				SFX->FX_TPASSIN	:= "1"			
+				SFX->FX_GRPCLAS	:= "01"
+				SFX->FX_CLASSIT	:= "599"
+				SFX->FX_SDOC	:= cSerie
 
 
-						CD5->(MsUnlock())
+				SFX -> ( MsUnlock())
 
-					EndIf
+				SC6->(DbSkip())
 
-					SD1->(DbSkip())
-
-				Enddo
-			EndIf
-		Endif 
+			Enddo
+		EndIf
 	Endif
 
-	RestArea(Area)
-	CD5->(RestArea(AreaCD5))
-	SD1->(RestArea(AreaSD1))
+	If cEntSai == "S" .And. SD2->D2_VALICM <> 0 .And. SD2->D2_BASIMP5 <> 0 .And. SD2->D2_SERIE <> 'UNI'
+
+		dbselectarea("SC6")
+		dbsetorder(4) //C6_FILIAL, C6_NOTA, C6_SERIE
+		dbseek(xFilial("SC6")+cDoc+cSerie)
+
+		If SC6->(DbSeek(xFilial("SC6")+cDoc+cSerie))
+			While !SC6->(Eof()) .and. SC6->C6_NOTA == cDoc .and. SC6->C6_SERIE == cSerie
+
+				RecLock("CDG",.T.)
+
+				dbSelectArea("CDG")
+				//Gera Complemento para todos os itens da NF	
+				CDG-> ( dbSetOrder(1))
+				CDG->CDG_FILIAL	:= xFilial("CDG")
+				CDG->CDG_TPMOV	:= cEntSai
+				CDG->CDG_DOC	:= cDoc
+				CDG->CDG_SERIE	:= cSerie
+				CDG->CDG_CLIFOR	:= cClieFor
+				CDG->CDG_LOJA	:= cLoja
+				CDG->CDG_IFCOMP	:= "000001"
+				CDG->CDG_ITEM	:= SC6->C6_ITEM
+				CDG->CDG_PROCESS:= "0000000-00" // Exemplo - ajustar conforme necessidade
+				CDG->CDG_TPPROC	:= "1"
+				CDG->CDG_ITPROC	:= "00000001"
+				CDG->CDG_SDOC	:= cSerie
+
+				CDG-> ( MsUnlock())
+
+				SC6-> ( DbSkip())
+
+			Enddo
+		EndIf
+	Endif
+
+
+	//Inclusao da regra CDT - Informações complementares.
+
+	If cEntSai == "S" .And. SD2->D2_VALICM <> 0 .And. SD2->D2_BASIMP5 <> 0 .And. SD2->D2_SERIE <> 'UNI'
+
+		dbselectarea("SC6")
+		dbsetorder(4) //C6_FILIAL, C6_NOTA, C6_SERIE
+		dbseek(xFilial("SC6")+cDoc+cSerie)
+
+		If SC6->(DbSeek(xFilial("SC6")+cDoc+cSerie))
+
+			//lExiste 	:= CDT->(dbSeek(xFilial("CDT")+cDoc+cSerie))
+
+			//If lExiste
+			//	RecLock("CDT",.F.)
+
+			//Else                                       
+			RecLock("CDT",.T.)
+
+			dbSelectArea("CDT")
+			CDT-> ( dbSetOrder(1))
+			CDT->CDT_FILIAL	:= xFilial("CDT")	
+			CDT->CDT_TPMOV	:= cEntSai	
+			CDT->CDT_DOC	:= cDoc	
+			CDT->CDT_SERIE	:= cSerie	
+			CDT->CDT_CLIFOR	:= cClieFor	
+			CDT->CDT_LOJA	:= cLoja								
+			CDT->CDT_IFCOMP := "000001"
+
+			CDT-> ( MsUnlock())
+
+			SC6-> ( DbSkip())
+		EndIf
+	Endif 
 
 Return
