@@ -113,7 +113,7 @@ verificação → resposta rastreável</b>.
 
 - 📦 **[Projetos](https://github.com/EddyParanhos/Projetos)** — trabalhos e provas de conceito.
 - 🧠 **[TARS — AI Agent](https://github.com/EddyParanhos/TARS)** — runtime, conhecimento e automação segura.
-- 🧩 **Fontes ADVPL em [`fontes/`](fontes/)** — [`ExtT154Fat.prw`](fontes/ExtT154Fat.prw), [`RelCfgTrb.prw`](fontes/RelCfgTrb.prw), [`MATUCOMP.prw`](fontes/MATUCOMP.prw), [`ImportFCI.prw`](fontes/ImportFCI.prw).
+- 🧩 **Fontes ADVPL em [`fontes/`](fontes/)** — [`ExtMecf.prw`](fontes/ExtMecf.prw), [`ExtT154Fat.prw`](fontes/ExtT154Fat.prw), [`ImpTabErp.prw`](fontes/ImpTabErp.prw), [`MATUCOMP.prw`](fontes/MATUCOMP.prw), [`RefPisCfX.prw`](fontes/RefPisCfX.prw), [`RetIcmBas.prw`](fontes/RetIcmBas.prw).
 
 ---
 
