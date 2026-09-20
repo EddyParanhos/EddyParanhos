@@ -7,9 +7,9 @@
 /*--------------------------------------------------------------------*
 | Func:  ExtT154Fat()                                                 |
 | Autor: Edmar Paranhos                                               |
-| Data:  31/01/2019                                                   |
+| Data:  28/09/2023                                                   |
 | Desc:  Gera arquivo TXT no layout TAF dos titulos com Retenção.     |
-| Obs.:  \                                                            |
+| Obs.:  Ajuste para atender aos Eventos REINF.                       |
 *---------------------------------------------------------------------*/
 
 User Function ExtT154Fat()
@@ -37,18 +37,18 @@ User Function ExtT154Fat()
 	Private cCliFor := ""
 	Private cLojaCF := ""
 	Private cCF2    := ""
-	Private nBasIns := 0
-	Private nValIns := 0
-	Private nBasIns := 0
-	Private cCodSer := ""
-	Private cTpServ := ""
-	Private cCodISS := ""
-	Private cRazaoS := "" 
-	Private cCgcCpf := "" 
-	Private cLograd := "" 
-	Private cCodMun := ""
-	Private cUf		:= "" 
-	Private cCprb	:= "0" //0 = Não|1 = Sim
+	Private nBasIR := 0
+	Private nBasCsrf := 0
+	Private nValIrf := 0
+	Private nValPis := 0
+	Private nValCof := 0
+	Private nValCsl := 0
+	Private nBasIR := 0
+	Private cNatRen:= ""
+	Private cBxE2  := ""
+
+	//Private cUf		:= "" 
+	//Private cCprb	:= "0" //0 = Não|1 = Sim
 
 	MsgInfo("Esta rotina irá gerar o arquivo .TXT Layout TAF apenas para a filial Logada!","Informação!")
 
@@ -102,285 +102,176 @@ Return
 /*--------------------------------------------------------------------*
 | Func:  GeraT154F ()                                                 |
 | Autor: Edmar Paranhos                                               |
-| Data:  31/01/2019                                                   |
+| Data:  28/09/2023                                                   |
 | Desc:  Realiza o Select e alimenta os Arrays para cada Layouts.     |
-| Obs.:  Busca Valor e Base INSS da SD1/SD2 (Regra GPS).              |
+| Obs.:  Busca Valor e Base INSS da SD1/SF1/SE2.                      |
 *---------------------------------------------------------------------*/
 
 Static Function GeraT154F  (dDtini,dDtfim)
 
 	Local aReg003:= {} 
 	Local aReg154:= {} 
-	Local aR154AA:= {}
+	Local aR154AG:= {}
+	Local aR154AH:= {}
+	Local aR154H1:= {}
+	Local aR154H2:= {}
+	Local aR154H3:= {}
 	Local aR154AB:= {}
+	Local aReg158:= {} 
+	Local aR158AA:= {}
+	Local aR158B1:= {}
+	Local aR158B2:= {}
+	Local aR158B3:= {}
+	Local aR158B4:= {}
 	Local cLin 
 
-	If Select("TMP154") > 0
-		dbSelectArea("TMP154")
-		dbCloseArea()
-	EndIf
+    cQuery := " SELECT F1.F1_FILIAL, F1.F1_TIPO, F1.F1_DOC, F1.F1_SERIE, F1.F1_FORNECE, F1.F1_LOJA, SUM(D1.D1_TOTAL) AS D1TOT, SUM(D1.D1_BASEIRR) AS BSIRF,SUM(D1.D1_BASEPIS) AS D1BSPI, SUM(D1.D1_BASECOF) AS D1BSCF, SUM(D1.D1_BASECSL) AS D1BSCS, SUM(D1.D1_VALIRR) AS VLIRF,SUM(D1.D1_VALPIS) AS D1VLPS, SUM(D1.D1_VALCOF) AS D1VLCF, SUM(D1.D1_VALCSL) AS D1VLCS, F2Q.F2Q_NATREN, E2.E2_BAIXA, F1.F1_EMISSAO,F1.F1_DTDIGIT FROM " + RetSqlName("SF1") + " F1"
 
-	cQuery := 'SELECT SF3.R_E_C_N_O_ AS RECNOSF3,F3_NFISCAL, F3_FILIAL, F3_ENTRADA, F3_EMISSAO, F3_SERIE, F3_CLIEFOR, F3_LOJA,A2_CGC AS "CNPJ",A2_NOME AS "NOME", A2_END AS "_END", A2_COD_MUN AS "CODMUN", A2_EST AS "EST", F3_VALCONT, F3_TIPO, FT_TIPOMOV,F3_CODISS, SUM(D1_BASEINS) AS BASE_INSS , SUM(D1_VALINS) AS VLR_INSS'+ CRLF 
-	cQuery += " FROM "+RetSqlName("SFT") +" SFT " + CRLF 
-	cQuery += " INNER JOIN " + RetSqlName("SF3") + " SF3 ON (FT_NFISCAL = F3_NFISCAL)" + CRLF  
-	cQuery += " AND (FT_SERIE = F3_SERIE)" + CRLF
-	cQuery += " AND (FT_CLIEFOR = F3_CLIEFOR)" + CRLF  
-	cQuery += " AND (FT_LOJA = F3_LOJA) " + CRLF 
-	cQuery += " INNER JOIN " + RetSqlName("SD1") + " SD1 ON (D1_DOC = FT_NFISCAL)" + CRLF  
-	cQuery += " AND (FT_SERIE = D1_SERIE)" + CRLF
-	cQuery += " AND (FT_CLIEFOR = D1_FORNECE)" + CRLF  
-	cQuery += " AND (FT_LOJA = D1_LOJA) " + CRLF 
-	cQuery += " INNER JOIN " + RetSqlName("SA2") + " SA2 ON (A2_COD = F3_CLIEFOR)" + CRLF 
-	cQuery += " AND (A2_LOJA = F3_LOJA) " + CRLF 	
-	cQuery += " WHERE SFT.FT_FILIAL = '" + xFilial ("SFT") + "' " + CRLF 
-	cQuery += "   AND SFT.FT_TIPO = 'S' " + CRLF 
-	cQuery += "   AND SD1.D1_BASEINS <> 0 " + CRLF 
-	cQuery += "   AND SD1.D1_VALINS  <> 0 " + CRLF 
-	cQuery += "   AND SD1.D1_ALIQINS <> 0 " + CRLF 
-	cQuery += "   AND SFT.FT_EMISSAO >= '"+DTOS(dDtini)+"' " + CRLF 
-	cQuery += "   AND SFT.FT_EMISSAO <=  '"+DTOS(dDtfim)+"' " + CRLF 
-	cQuery += "   AND SFT.FT_DTCANC = ' '" + CRLF
-	cQuery += "   AND SA2.A2_TIPO = 'J'" + CRLF
-	cQuery += "   AND SA2.A2_RECINSS = 'S'" + CRLF
-	cQuery += "   AND SFT.D_E_L_E_T_ = ' ' " + CRLF  
-	cQuery += "   AND SF3.D_E_L_E_T_ = ' ' " + CRLF 
-	cQuery += "   AND SD1.D_E_L_E_T_ = ' ' " + CRLF 
-	cQuery += "   GROUP BY SF3.R_E_C_N_O_,F3_NFISCAL, F3_FILIAL, F3_ENTRADA, F3_EMISSAO, F3_SERIE, F3_CLIEFOR, F3_LOJA,A2_CGC, A2_NOME, A2_END, A2_COD_MUN ,A2_EST, F3_VALCONT, F3_TIPO, FT_TIPOMOV,F3_CODISS" + CRLF 
-	cQuery += "   UNION ALL " + CRLF 	
-	cQuery += 'SELECT SF3.R_E_C_N_O_ AS RECNOSF3,F3_NFISCAL, F3_FILIAL, F3_ENTRADA, F3_EMISSAO, F3_SERIE, F3_CLIEFOR, F3_LOJA, A1_CGC "CNPJ", A1_NOME AS "NOME",A1_END AS "_END", A1_COD_MUN AS "CODMUN",A1_EST AS "EST",F3_VALCONT, F3_TIPO, FT_TIPOMOV,F3_CODISS, SUM(D2_BASEINS) AS BASE_INSS , SUM(D2_VALINS) AS VLR_INSS' + CRLF
-	cQuery += " FROM "+RetSqlName("SFT") +" SFT " + CRLF 
-	cQuery += " INNER JOIN " + RetSqlName("SF3") + " SF3 ON (FT_NFISCAL = F3_NFISCAL)" + CRLF  
-	cQuery += " AND (FT_SERIE = F3_SERIE)" + CRLF
-	cQuery += " AND (FT_CLIEFOR = F3_CLIEFOR)" + CRLF  
-	cQuery += " AND (FT_LOJA = F3_LOJA) " + CRLF 
-	cQuery += " INNER JOIN " + RetSqlName("SD2") + " SD2 ON (D2_DOC = FT_NFISCAL)" + CRLF  
-	cQuery += " AND (FT_SERIE = D2_SERIE)" + CRLF
-	cQuery += " AND (FT_CLIEFOR = D2_CLIENTE)" + CRLF  
-	cQuery += " AND (FT_LOJA = D2_LOJA) " + CRLF 
-	cQuery += " INNER JOIN " + RetSqlName("SA1") + " SA1 ON (A1_COD = F3_CLIEFOR)" + CRLF 
-	cQuery += " AND (A1_LOJA = F3_LOJA) " + CRLF	
-	cQuery += " WHERE SFT.FT_FILIAL = '" + xFilial ("SFT") + "' " + CRLF 
-	cQuery += "   AND SFT.FT_TIPO = 'S' " + CRLF 
-	cQuery += "   AND SD2.D2_BASEINS <> 0 " + CRLF 
-	cQuery += "   AND SD2.D2_VALINS  <> 0 " + CRLF 
-	cQuery += "   AND SD2.D2_ALIQINS <> 0 " + CRLF 
-	cQuery += "   AND SFT.FT_EMISSAO >= '"+DTOS(dDtini)+"' " + CRLF 
-	cQuery += "   AND SFT.FT_EMISSAO <=  '"+DTOS(dDtfim)+"' " + CRLF 
-	cQuery += "   AND SFT.FT_DTCANC = ' '" + CRLF
-	cQuery += "   AND SA1.A1_PESSOA = 'J'" + CRLF
-	cQuery += "   AND SA1.A1_RECINSS = 'S'" + CRLF
-	cQuery += "   AND SFT.D_E_L_E_T_ = ' ' " + CRLF  
-	cQuery += "   AND SF3.D_E_L_E_T_ = ' ' " + CRLF 
-	cQuery += "   AND SD2.D_E_L_E_T_ = ' ' " + CRLF 
-	cQuery += "   GROUP BY SF3.R_E_C_N_O_,F3_NFISCAL, F3_FILIAL, F3_ENTRADA, F3_EMISSAO, F3_SERIE, F3_CLIEFOR, F3_LOJA,A1_CGC, A1_NOME,A1_END, A1_COD_MUN ,A1_EST, F3_VALCONT, F3_TIPO, FT_TIPOMOV,F3_CODISS" + CRLF 
+    cQuery += " INNER JOIN " + RetSqlName("SD1") + " D1"
+    cQuery += "       ON F1.F1_DOC = D1.D1_DOC"
+    cQuery += "       AND F1.F1_SERIE = D1.D1_SERIE"
+    cQuery += "       AND F1.F1_FORNECE = D1.D1_FORNECE"
+    cQuery += "       AND F1.F1_LOJA = D1.D1_LOJA"
+	cQuery += "       AND F1.D_E_L_E_T_ = ' '"
+    cQuery += "       AND (D1.D1_BASEIRR > 0 OR D1.D1_BASEPIS > 0 OR D1.D1_BASECOF > 0 OR D1.D1_BASECSL > 0)"
+    cQuery += "       AND D1.D_E_L_E_T_ = ' '"
+    cQuery += "       AND D1.D1_FILIAL = '" + xFilial ("SD1") + "'"
+
+    cQuery += " INNER JOIN " + RetSqlName("F2Q") + " F2Q"
+    cQuery += "       ON F2Q.F2Q_PRODUT = D1.D1_COD"
+    cQuery += "       AND F2Q.D_E_L_E_T_ = ' '"
+    cQuery += "       AND F2Q.F2Q_FILIAL = '" + fwxFilial("F2Q") + "'"
+
+    cQuery += " INNER JOIN " + RetSqlName("SE2") + " E2"
+    cQuery += "       ON E2.E2_NUM = F1.F1_DOC"
+    cQuery += "       AND E2.E2_FORNECE = F1.F1_FORNECE"
+    cQuery += "       AND E2.E2_LOJA = F1.F1_LOJA"
+    //cQuery += "       AND E2.E2_SALDO > 0"
+    cQuery += "       AND E2.E2_ORIGEM IN ('MATA100','MATA103')"
+    cQuery += "       AND E2.D_E_L_E_T_ = ' '"
+	cQuery += "       AND E2.E2_FILORIG = '" + cFilAnt + "'"
+    //cQuery += "       AND E2.E2_FILORIG = '" + xFilial ("SE2") + "'"
+
+    cQuery += " WHERE F1.F1_STATUS = 'A'"
+    cQuery += " AND F1.F1_FILIAL = '" + xFilial ("SF1") + "'"
+    cQuery += "   AND F1.F1_EMISSAO >= '"+DTOS(dDtini)+"' " + CRLF 
+	cQuery += "   AND F1.F1_EMISSAO <=  '"+DTOS(dDtfim)+"' " + CRLF 
+    cQuery += " GROUP BY F1.F1_EMISSAO,F1.F1_DTDIGIT, F1.F1_FILIAL,F1.F1_TIPO,F1.F1_DOC,F1.F1_SERIE,F1.F1_FORNECE,F1.F1_LOJA,F2Q.F2Q_NATREN, E2.E2_BAIXA"
+    cQuery += " ORDER BY F1.F1_EMISSAO,F1.F1_DTDIGIT ASC, F1.F1_DOC, F1.F1_SERIE, F1.F1_FORNECE, F1.F1_LOJA"
 
 	cQuery := ChangeQuery(cQuery)
 
-	DbUseArea( .T. , "TOPCONN" , TCGenQry(,,cQuery) , 'TMP154' , .F. , .T. )
+	MpSysOpenQuery(cQuery,"TMP154")
+
+	dbSelectArea("TMP154")
+
+	TMP154->(dbGoTop())
 
 	While TMP154-> ( !Eof())
 
-		DbSelectArea("SFT")
-		SFT->(DBSETORDER(2))
-		SFT->(DBGOTO(TMP154->RECNOSF3))
 
-		nNumNF := cValToChar( TMP154-> F3_NFISCAL)
+		nNumNF := cValToChar( TMP154-> F1_DOC)
 
-		cSerie := Alltrim( TMP154-> F3_SERIE)	
+		cSerie := Alltrim( TMP154-> F1_SERIE)
 
-		cCliFor := TMP154-> F3_CLIEFOR
+		cCliFor := TMP154-> F1_FORNECE
+		
+		cCF2 := "F"+cCliFor	
 
-		If ( TMP154 -> FT_TIPOMOV) == 'E' 
+		cLojaCF := TMP154-> F1_LOJA
 
-			cCF2 := "F"+cCliFor			
-		Else
-			cCF2 := "C"+cCliFor
+		dDataE := TMP154-> F1_EMISSAO	
 
-		Endif
+		cNature := "0"
+	  
+		nValctb:= cValToChar( TMP154-> D1TOT)
 
-		cLojaCF := TMP154-> F3_LOJA
+		nBasIR:= cValToChar( TMP154-> BSIRF)
 
-		dDataE := TMP154-> F3_EMISSAO	
+		nBasCsrf:= cValToChar( TMP154-> D1BSPI)
 
-		cNature := TMP154-> FT_TIPOMOV
+		nValIrf:= cValToChar( TMP154-> VLIRF)
 
-		If ( TMP154 -> FT_TIPOMOV) == 'E'
-			cNature := '0'
-		Else
-			cNature := '1'
-		Endif		  
+		nValPis:= cValToChar( TMP154-> D1VLPS)
 
-		nValctb:= cValToChar( TMP154-> F3_VALCONT)
+		nValCof:= cValToChar( TMP154-> D1VLCF)
 
-		nBasIns:= cValToChar( TMP154->BASE_INSS)
+		nValCsl:= cValToChar( TMP154-> D1VLCS)
 
-		nValIns:= cValToChar( TMP154->VLR_INSS)
+		cNatRen:= Alltrim( TMP154-> F2Q_NATREN)
 
-		cCodISS:= Alltrim( TMP154-> F3_CODISS)
-
-		cRazaoS:= Alltrim( TMP154-> NOME) 
-
-		cCgcCpf:= cValToChar( TMP154-> CNPJ)
-
-		cLograd:= Alltrim( TMP154-> _END)
-
-		cCodMun:= cValToChar( TMP154-> CODMUN)
-
-		cUf:= ( TMP154 -> EST)
-
-		POSICIONE("SA2",1, xFilial("SA2") + TMP154->F3_CLIEFOR + TMP154->F3_LOJA , "A2_CPRB")
-
-		If ( TMP154 -> FT_TIPOMOV) == 'E' .And. SA2-> A2_CPRB == "1"
-
-			cCprb:= "1"
-
-		Else
-
-			cCprb:= "0"
-
-		Endif
-
-		POSICIONE("CDN",1, xFilial("CDN") + TMP154->F3_CODISS, "CDN_TPSERV")
-
-		cCodSer := Alltrim(CDN->CDN_TPSERV) 
-
-		Do Case
-
-			Case cCodSer == "01" 
-			cTpServ := "100000001"
-
-			Case cCodSer == "02" 
-			cTpServ := "100000002"
-
-			Case cCodSer == "03" 
-			cTpServ := "100000003"
-
-			Case cCodSer == "04" 
-			cTpServ := "100000004"
-
-			Case cCodSer == "05" 
-			cTpServ := "100000005"
-
-			Case cCodSer == "06" 
-			cTpServ := "100000006"
-
-			Case cCodSer == "07" 
-			cTpServ := "100000007"
-
-			Case cCodSer == "08" 
-			cTpServ := "100000008"
-
-			Case cCodSer == "09" 
-			cTpServ := "100000009"
-
-			Case cCodSer == "10" 
-			cTpServ := "100000010"
-
-			Case cCodSer == "11" 
-			cTpServ := "100000011"
-
-			Case cCodSer == "12" 
-			cTpServ := "100000012"
-
-			Case cCodSer == "13" 
-			cTpServ := "100000013"
-
-			Case cCodSer == "14" 
-			cTpServ := "100000014"
-
-			Case cCodSer == "15" 
-			cTpServ := "100000015"
-
-			Case cCodSer == "16" 
-			cTpServ := "100000016"
-
-			Case cCodSer == "17" 
-			cTpServ := "100000017"
-
-			Case cCodSer == "18" 
-			cTpServ := "100000018"
-
-			Case cCodSer == "19" 
-			cTpServ := "100000019"
-
-			Case cCodSer == "20" 
-			cTpServ := "100000020"
-
-			Case cCodSer == "21" 
-			cTpServ := "100000021"
-
-			Case cCodSer == "22" 
-			cTpServ := "100000022"
-
-			Case cCodSer == "23" 
-			cTpServ := "100000023"
-
-			Case cCodSer == "24" 
-			cTpServ := "100000024"
-
-			Case cCodSer == "25" 
-			cTpServ := "100000025"
-
-			Case cCodSer == "26" 
-			cTpServ := "100000026"
-
-			Case cCodSer == "27" 
-			cTpServ := "100000027"
-
-			Case cCodSer == "28" 
-			cTpServ := "100000028"
-
-			Case cCodSer == "29" 
-			cTpServ := "100000029"
-
-			Case cCodSer == "30" 
-			cTpServ := "100000030"
-
-			Case cCodSer == "31" 
-			cTpServ := "100000031" 
-
-		EndCase
+		cBxE2 := TMP154-> E2_BAIXA
 
 		TMP154-> ( DBSKIP())
 
-		Aadd( aReg003, "|T003|"+cCF2+cLojaCF+"|"+cRazaoS+"|01058|"+cCgcCpf+"|||"+cCodMun+"||03|"+cLograd+"|||||"+cUf+"|||||||20180101|2|||||||||||||||||"+cCprb+"|||2||")
-		Aadd( aReg154, "|T154|"+ Alltrim(nNumNF) +"|"+cSerie+"|"+cCF2+cLojaCF+"|"+ dDataE+"|"+cNature+"||||||"+ nValctb+"|||||||||0,0|0,0|0,0|0,0|0,0|0,0|0,0|0,0|0,0|0,0||||0,0||||3|"+cCodISS+"|||||||")
-		Aadd( aR154AA, "|T154AA|"+ cTpServ + "|"+ nBasIns+"|"+ nValIns+"||||||||||||")
-		Aadd( aR154AB, "|T154AB|1|" + nValctb + "|")
+		//Aadd( aReg003, "|T003|"+cCF2+cLojaCF+"|"+cRazaoS+"|01058|"+cCgcCpf+"|||"+cCodMun+"||03|"+cLograd+"|||||"+cUf+"|||||||20180101|2|||||||||||||||||"+cCprb+"|||2||")
+		Aadd( aReg154, "|T154|"+ Alltrim(nNumNF) +"|"+cSerie+"|"+cCF2+cLojaCF+"|"+ dDataE+"|"+cNature+"||||||"+ Strtran(nValctb,".",",") +"|||||||||0|0|0|0|0|0|0|0|0|0||||0||||3||||||||||0|0|0||||")
+		Aadd( aR154AG, "|T154AG|"+ cNatRen + "|2|"+ Strtran(nValctb,".",",")+"||||||")
+		Aadd( aR154AH, "|T154AH|12|"+ Strtran(nBasIR,".",",") +"|"+ Strtran(nValIrf,".",",")+"|0|")    //IRRF
+		Aadd( aR154AB, "|T154AB|1|" + Strtran(nValctb,".",",") + "|")
+
+		Aadd( aReg158, "|T158|"+ Alltrim(nNumNF) +"|"+cSerie+"|"+cCF2+cLojaCF+"|"+ dDataE+"|"+cNature+"||"+ dDataE+"|01||"+Alltrim(cBxE2)+"|")
+		Aadd( aR158AA, "|T158AA|"+ cNatRen + "|"+ Strtran(nValctb,".",",")+"|2||||||")
+		Aadd( aR158B4, "|T158AB|28|"+ Strtran(nBasIR,".",",") +"|"+ Strtran(nValIrf,".",",")+"|0|")
+		Aadd( aR158B1, "|T158AB|11|"+ Strtran(nBasCsrf,".",",") +"|"+ Strtran(nValCof,".",",")+"|0|")    
+		Aadd( aR158B2, "|T158AB|18|"+ Strtran(nBasCsrf,".",",") + "|"+ Strtran(nValCsl,".",",")+"|0|")
+		Aadd( aR158B3, "|T158AB|10|"+ Strtran(nBasCsrf,".",",") + "|"+ Strtran(nValPis,".",",")+"|0|")
 
 		nArquivo := fcreate(cDir + cNomeArq, FC_NORMAL)
 
 		if ferror() # 0
 			msgalert ("ERRO AO CRIAR O ARQUIVO, ERRO: " + str(ferror()))
 			lFalha := .T.
-		else
+
+			else
 
 			cLin := "|T001"+"|"
 			cLin += cEmpc + cFcorr + "|"+"#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|#NAOGRAVAR#|" + CRLF
 			cLin += "|T001AA"+"|"+cUfFil+"|"+ Alltrim(cIeFil) +"||"+ CRLF
-			cLin += "|T001AN|53113791000122|TOTVS S.A|MARCELO EDUARDO SANTANNA CONSENTINO|1140040015|marceloc@totvs.com.br|"+ CRLF
+			cLin += "|T001AN|00000000000000|EMPRESA EXEMPLO S.A|NOME DO RESPONSAVEL|0000000000|exemplo@empresa.com.br|"+ CRLF
 
 			If fWrite(nArquivo,cLin,Len(cLin)) != Len(cLin)
 
 			Endif  
 
-			for nLinha := 1 to len(aReg003)  
 				for nLinha := 1 to len(aReg154)
-					For nLinha := 1 to len(aR154AA)
-						For nLinha := 1 to len(aR154AB)
-							fwrite(nArquivo, aReg003[ nLinha] + chr(13) + chr(10))
-							fwrite(nArquivo, aReg154[ nLinha] + chr(13) + chr(10))			
-							fwrite(nArquivo, aR154AA[ nLinha] + chr(13) + chr(10))
-							fwrite(nArquivo, aR154AB[ nLinha] + chr(13) + chr(10))										
-							if ferror() # 0
-								msgalert ("ERRO GRAVANDO ARQUIVO, ERRO: " + str(ferror()))
-								lFalha := .T.
-							Endif
+					For nLinha := 1 to len(aR154AG)
+						For nLinha := 1 to len(aR154AH)
+							For nLinha := 1 to len(aR154AB)	
+								For nLinha := 1 to len(aReg158)
+									For nLinha := 1 to len(aR158AA)
+										For nLinha := 1 to len(aR158B4)	
+											For nLinha := 1 to len(aR158B1)
+												For nLinha := 1 to len(aR158B2)
+													For nLinha := 1 to len(aR158B3)														fwrite(nArquivo, aReg154[ nLinha] + chr(13) + chr(10))			
+													fwrite(nArquivo, aR154AG[ nLinha] + chr(13) + chr(10))
+													fwrite(nArquivo, aR154AH[ nLinha] + chr(13) + chr(10))	
+													fwrite(nArquivo, aR154AB[ nLinha] + chr(13) + chr(10))	
+													fwrite(nArquivo, aReg158[ nLinha] + chr(13) + chr(10))			
+													fwrite(nArquivo, aR158AA[ nLinha] + chr(13) + chr(10))
+													fwrite(nArquivo, aR158B4[ nLinha] + chr(13) + chr(10))
+													fwrite(nArquivo, aR158B1[ nLinha] + chr(13) + chr(10))	
+													fwrite(nArquivo, aR158B2[ nLinha] + chr(13) + chr(10))
+													fwrite(nArquivo, aR158B3[ nLinha] + chr(13) + chr(10))	
+
+													if ferror() # 0
+														msgalert ("ERRO GRAVANDO ARQUIVO, ERRO: " + str(ferror()))
+														lFalha := .T.
+													Endif
+
+												Next
+											Next
+										Next
+										Next
+									Next
+								Next					
+							Next
 						Next
 					Next
 				Next
-			Next
+
 		Endif
+
 		fclose ( nArquivo)
 
 	Enddo
